@@ -1,0 +1,48 @@
+{
+  "$schema": "https://raw.githubusercontent.com/modelcontextprotocol/specification/main/schema/mcp_config_schema.json",
+  "description": "MCP server configuration for Augment Agent with Prisma and Browser automation capabilities",
+  "mcpServers": {
+    "prisma": {
+      "command": "npx",
+      "args": ["-y", "prisma", "platform", "mcp", "--early-access"],
+      "description": "Prisma MCP server for database management - create databases, run migrations, manage schema",
+      "capabilities": [
+        "database_creation",
+        "schema_migration", 
+        "database_management",
+        "prisma_console_access"
+      ]
+    },
+    "browsermcp": {
+      "command": "npx",
+      "args": ["-y", "@browsermcp/mcp"],
+      "description": "Browser MCP server for browser automation - control Chrome browser, interact with web pages",
+      "capabilities": [
+        "browser_automation",
+        "web_scraping",
+        "form_filling",
+        "page_navigation",
+        "element_interaction"
+      ],
+      "requirements": {
+        "chrome_extension": "Browser MCP Chrome Extension must be installed",
+        "chrome_browser": "Google Chrome browser required"
+      }
+    }
+  },
+  "globalSettings": {
+    "timeout": 30000,
+    "retries": 3,
+    "logLevel": "info"
+  },
+  "environment": {
+    "development": {
+      "enabled": true,
+      "servers": ["prisma", "browsermcp"]
+    },
+    "production": {
+      "enabled": true,
+      "servers": ["prisma"]
+    }
+  }
+}

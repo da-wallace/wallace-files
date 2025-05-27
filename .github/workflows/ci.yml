@@ -1,0 +1,95 @@
+name: 🚀 Modern CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, staging, dev]
+  pull_request:
+    branches: [main, staging]
+
+env:
+  VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+  VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+jobs:
+  # ⚡ Lightning-fast testing with Bun
+  test:
+    name: 🧪 Test & Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: ⚡ Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: 📦 Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: 🎨 Format check
+        run: bun run format:check
+
+      - name: 🔍 Lint
+        run: bun run lint
+
+      - name: 🔧 Type check
+        run: bun run typecheck
+
+      - name: 🧪 Run tests
+        run: bun run test
+
+  # 🚀 Deploy to staging (staging branch)
+  deploy-staging:
+    name: 🚀 Deploy to Staging
+    if: github.ref == 'refs/heads/staging' && github.event_name == 'push'
+    needs: test
+    runs-on: ubuntu-latest
+    environment: staging
+
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: ⚡ Setup Bun
+        uses: oven-sh/setup-bun@v1
+
+      - name: 📦 Install Vercel CLI
+        run: bun add -g vercel@latest
+
+      - name: 🔗 Pull Vercel Environment
+        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: 🏗️ Build Project
+        run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: 🚀 Deploy to Staging
+        run: vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }}
+
+  # 🎯 Deploy to production (main branch)
+  deploy-production:
+    name: 🎯 Deploy to Production
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: test
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: ⚡ Setup Bun
+        uses: oven-sh/setup-bun@v1
+
+      - name: 📦 Install Vercel CLI
+        run: bun add -g vercel@latest
+
+      - name: 🔗 Pull Vercel Environment
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: 🏗️ Build Project
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: 🎯 Deploy to Production
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
